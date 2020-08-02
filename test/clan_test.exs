@@ -7,57 +7,57 @@ defmodule ClanTest do
   #end
   test "creates a player" do
     name = "Sergey"
-    {:ok, player} = Player.create_player(name)
+    {:ok, player} = Player.new(name)
     assert player == %{name: "Sergey", clan_name: :nil}
   end
 
   test "creates a clan" do
     name = "Sergey"
-    {:ok, player} = Player.create_player(name)
-    {:ok, {player, clan}} = Clan.create_clan(player, "Kaliningrad","KGD")
+    {:ok, player} = Player.new(name)
+    {:ok, {player, clan}} = Clan.new(player, "Kaliningrad","KGD")
     assert player == %{name: "Sergey", clan_name: "Kaliningrad"}
     assert clan == %Clan{creator: "Sergey", tag: "KGD", members: MapSet.new() |> MapSet.put("Sergey"), name: "Kaliningrad"}
   end
 
   test "fails to create an invite to a clan when inviter's clan tag is :nil" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    invite = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    invite = Invite.new(sergey, misha)
     assert invite == {:error, :empty_inviter_clan_name}
   end
 
   test "fails to create an invite to a clan when receiver's clan tag is not :nil" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, _}} = Clan.create_clan(sergey, "Kaliningrad1", "KGD")
-    {:ok, {misha, _}} = Clan.create_clan(misha, "Kaliningrad2", "KDG")
-    invite = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, _}} = Clan.new(sergey, "Kaliningrad1", "KGD")
+    {:ok, {misha, _}} = Clan.new(misha, "Kaliningrad2", "KDG")
+    invite = Invite.new(sergey, misha)
     assert invite == {:error, :nonempty_receiver_clan_name}
   end
 
   test "creates an invite to a clan" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, _}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, _}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite} = Invite.new(sergey, misha)
     assert invite == %Invite{inviter: sergey, receiver: misha, clan_name: "Kaliningrad"}
   end
 
   test "replies to an invite with the :decline" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite} = Invite.new(sergey, misha)
     {:ok, {new_misha_state, new_clan_state}} = Invite.reply_to_invite(invite, misha, clan, :decline)
     assert misha == new_misha_state
     assert clan == new_clan_state
   end
 
   test "replies to an invite with the :accept" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite} = Invite.new(sergey, misha)
     {:ok, {misha, clan}} = Invite.reply_to_invite(invite, misha, clan, :accept)
     assert misha == %{name: "Misha", clan_name: "Kaliningrad"}
     members = MapSet.new() |> MapSet.put("Misha") |> MapSet.put("Sergey")
@@ -65,41 +65,41 @@ defmodule ClanTest do
   end
 
   test "fails to accept an invite when already has clan" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite1} = Invite.create_invite(sergey, misha)
-    {:ok, invite2} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite1} = Invite.new(sergey, misha)
+    {:ok, invite2} = Invite.new(sergey, misha)
     {:ok, {misha, clan}} = Invite.reply_to_invite(invite1, misha, clan, :accept)
     reply = Invite.reply_to_invite(invite2, misha, clan, :accept)
     assert reply == {:error, :nonempty_receiver_clan_name}
   end
 
   test "remove clan creator from clan that contains only creator" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
     {:ok, {sergey, clan}} = Clan.remove_from_clan(sergey, sergey, clan)
     assert sergey == %{name: "Sergey", clan_name: :nil}
     assert clan == :nil
   end
 
   test "fails to remove clan creator from clan that contains more than only creator" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite} = Invite.new(sergey, misha)
     {:ok, {_misha, clan}} = Invite.reply_to_invite(invite, misha, clan, :accept)
     result = Clan.remove_from_clan(sergey, sergey, clan)
     assert result == {:error, :incorrect_clan_creator_deleting}
   end
 
   test "fails to remove player from clan when have no permission" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, vanya} = Player.create_player("Vanya")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite_misha} = Invite.create_invite(sergey, misha)
-    {:ok, invite_vanya} = Invite.create_invite(sergey, vanya)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, vanya} = Player.new("Vanya")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite_misha} = Invite.new(sergey, misha)
+    {:ok, invite_vanya} = Invite.new(sergey, vanya)
     {:ok, {_misha, clan}} = Invite.reply_to_invite(invite_misha, misha, clan, :accept)
     {:ok, {_vanya, clan}} = Invite.reply_to_invite(invite_vanya, vanya, clan, :accept)
 
@@ -108,11 +108,11 @@ defmodule ClanTest do
   end
 
   test "fails to remove player that doesn't exist in clan" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, vanya} = Player.create_player("Vanya")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite_misha} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, vanya} = Player.new("Vanya")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite_misha} = Invite.new(sergey, misha)
     {:ok, {_misha, clan}} = Invite.reply_to_invite(invite_misha, misha, clan, :accept)
 
     result = Clan.remove_from_clan(sergey, vanya, clan)
@@ -120,10 +120,10 @@ defmodule ClanTest do
   end
 
   test "clan creator removes a regular user from a clan" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite_misha} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite_misha} = Invite.new(sergey, misha)
     {:ok, {misha, clan}} = Invite.reply_to_invite(invite_misha, misha, clan, :accept)
 
     {:ok, {misha, clan}} = Clan.remove_from_clan(sergey, misha, clan)
@@ -132,10 +132,10 @@ defmodule ClanTest do
   end
 
   test "regular user removes himself from a clan" do
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, {sergey, clan}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
-    {:ok, invite_misha} = Invite.create_invite(sergey, misha)
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, {sergey, clan}} = Clan.new(sergey, "Kaliningrad", "KGD")
+    {:ok, invite_misha} = Invite.new(sergey, misha)
     {:ok, {misha, clan}} = Invite.reply_to_invite(invite_misha, misha, clan, :accept)
 
     {:ok, {misha, clan}} = Clan.remove_from_clan(misha, misha, clan)
@@ -145,15 +145,15 @@ defmodule ClanTest do
 
   test "big clan_set test" do
     clan_set = ClanSet.new
-    {:ok, sergey} = Player.create_player("Sergey")
-    {:ok, misha} = Player.create_player("Misha")
-    {:ok, vanya} = Player.create_player("Vanya")
+    {:ok, sergey} = Player.new("Sergey")
+    {:ok, misha} = Player.new("Misha")
+    {:ok, vanya} = Player.new("Vanya")
     players = PlayerSet.new |> PlayerSet.put(sergey) |> PlayerSet.put(misha) |> PlayerSet.put(vanya)
 
     #Creating a new clan
     clan_name = "Kaliningrad"
     creator_name = "Sergey"
-    {:ok, {creator, clan}} = Clan.create_clan(players[creator_name], clan_name, "KGD")
+    {:ok, {creator, clan}} = Clan.new(players[creator_name], clan_name, "KGD")
     clan_set = clan_set |> ClanSet.put(clan)
     players = players |> PlayerSet.update(creator)
     assert players[creator_name].clan_name == clan_name
@@ -162,7 +162,7 @@ defmodule ClanTest do
     #Creating an invite to the clan
     creator_name = "Sergey"
     receiver_name = "Misha"
-    {:ok, invite} = Invite.create_invite(players[creator_name], players[receiver_name])
+    {:ok, invite} = Invite.new(players[creator_name], players[receiver_name])
     assert invite == %Invite{inviter: players[creator_name], receiver: players[receiver_name], clan_name: clan_name}
 
     #Declining an invite

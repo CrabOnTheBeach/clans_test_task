@@ -1,7 +1,7 @@
 defmodule Invite do
     defstruct inviter: "", receiver: "", clan_name: ""
 
-    def create_invite(inviter, receiver) do
+    def new(inviter, receiver) do
         cond do
             inviter.clan_name == :nil ->
                 {:error, :empty_inviter_clan_name}
