@@ -16,7 +16,7 @@ defmodule ClanTest do
     {:ok, player} = Player.create_player(name)
     {:ok, {player, clan}} = Clan.create_clan(player, "Kaliningrad","KGD")
     assert player == %{name: "Sergey", clan_name: "Kaliningrad"}
-    assert clan == %{creator: "Sergey", tag: "KGD", members: MapSet.new() |> MapSet.put("Sergey"), name: "Kaliningrad"}
+    assert clan == %Clan{creator: "Sergey", tag: "KGD", members: MapSet.new() |> MapSet.put("Sergey"), name: "Kaliningrad"}
   end
 
   test "fails to create an invite to a clan when inviter's clan tag is :nil" do
@@ -40,7 +40,7 @@ defmodule ClanTest do
     {:ok, misha} = Player.create_player("Misha")
     {:ok, {sergey, _}} = Clan.create_clan(sergey, "Kaliningrad", "KGD")
     {:ok, invite} = Invite.create_invite(sergey, misha)
-    assert invite == %{inviter: sergey, receiver: misha, clan_name: "Kaliningrad"}
+    assert invite == %Invite{inviter: sergey, receiver: misha, clan_name: "Kaliningrad"}
   end
 
   test "replies to an invite with the :decline" do
@@ -61,7 +61,7 @@ defmodule ClanTest do
     {:ok, {misha, clan}} = Invite.reply_to_invite(invite, misha, clan, :accept)
     assert misha == %{name: "Misha", clan_name: "Kaliningrad"}
     members = MapSet.new() |> MapSet.put("Misha") |> MapSet.put("Sergey")
-    assert clan == %{name: "Kaliningrad", creator: "Sergey", tag: "KGD", members: members }
+    assert clan == %Clan{name: "Kaliningrad", creator: "Sergey", tag: "KGD", members: members }
   end
 
   test "fails to accept an invite when already has clan" do
@@ -128,7 +128,7 @@ defmodule ClanTest do
 
     {:ok, {misha, clan}} = Clan.remove_from_clan(sergey, misha, clan)
     assert misha == %{name: "Misha", clan_name: :nil}
-    assert clan == %{creator: "Sergey", tag: "KGD", name: "Kaliningrad", members: MapSet.new() |> MapSet.put("Sergey")}
+    assert clan == %Clan{creator: "Sergey", tag: "KGD", name: "Kaliningrad", members: MapSet.new() |> MapSet.put("Sergey")}
   end
 
   test "regular user removes himself from a clan" do
@@ -140,7 +140,7 @@ defmodule ClanTest do
 
     {:ok, {misha, clan}} = Clan.remove_from_clan(misha, misha, clan)
     assert misha == %{name: "Misha", clan_name: :nil}
-    assert clan == %{creator: "Sergey", tag: "KGD", name: "Kaliningrad", members: MapSet.new() |> MapSet.put("Sergey")}
+    assert clan == %Clan{creator: "Sergey", tag: "KGD", name: "Kaliningrad", members: MapSet.new() |> MapSet.put("Sergey")}
   end
 
   test "big clan_set test" do
@@ -163,7 +163,7 @@ defmodule ClanTest do
     creator_name = "Sergey"
     receiver_name = "Misha"
     {:ok, invite} = Invite.create_invite(players[creator_name], players[receiver_name])
-    assert invite == %{inviter: players[creator_name], receiver: players[receiver_name], clan_name: clan_name}
+    assert invite == %Invite{inviter: players[creator_name], receiver: players[receiver_name], clan_name: clan_name}
 
     #Declining an invite
     {:ok, {player, new_clan_state}} = Invite.reply_to_invite(invite, players[receiver_name], clan_set[clan_name], :decline)
@@ -173,7 +173,7 @@ defmodule ClanTest do
     #Accepting an invite
     {:ok, {player, new_clan_state}} = Invite.reply_to_invite(invite, players[receiver_name], clan_set[clan_name], :accept)
     assert player == %{name: receiver_name, clan_name: clan_name}
-    assert new_clan_state == %{
+    assert new_clan_state == %Clan{
       creator: clan_set[clan_name].creator, 
       name: clan_set[clan_name].name, 
       tag: clan_set[clan_name].tag, 

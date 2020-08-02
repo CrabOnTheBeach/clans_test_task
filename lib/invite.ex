@@ -1,4 +1,6 @@
 defmodule Invite do
+    defstruct inviter: "", receiver: "", clan_name: ""
+
     def create_invite(inviter, receiver) do
         cond do
             inviter.clan_name == :nil ->
@@ -6,7 +8,7 @@ defmodule Invite do
             receiver.clan_name != :nil ->
                 {:error, :nonempty_receiver_clan_name}
             true ->
-                {:ok, %{inviter: inviter, receiver: receiver, clan_name: inviter.clan_name}}
+                {:ok, %Invite{inviter: inviter, receiver: receiver, clan_name: inviter.clan_name}}
         end
     end
 

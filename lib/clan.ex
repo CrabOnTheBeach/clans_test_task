@@ -1,6 +1,8 @@
 defmodule Clan do
+    defstruct creator: "", name: "", tag: "", members: ""
+
     def create_clan(clan_creator, clan_name, clan_tag) do
-        clan = %{creator: clan_creator.name, name: clan_name, tag: clan_tag, members: MapSet.new()}
+        clan = %Clan{creator: clan_creator.name, name: clan_name, tag: clan_tag, members: MapSet.new()}
         add_to_clan(clan, clan_creator)
     end
 

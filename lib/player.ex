@@ -1,4 +1,6 @@
 defmodule Player do
+    defstruct player_name: "", clan_name: :nil
+
     def create_player(player_name, clan_name \\ :nil) do
         if player_name == "" do
             {:error, :incorrect_name}
